@@ -17,12 +17,27 @@
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
 
+    <repositories>
+        <repository>
+            <id>github-rbonifacio-qilinpta</id>
+            <name>QilinPTA (rbonifacio)</name>
+            <url>https://maven.pkg.github.com/rbonifacio/QilinPTA</url>
+        </repository>
+    </repositories>
+
     <dependencies>
-        <!-- Soot - Java static analysis framework (3.3.0 = most recent 3.x; org.soot-oss only has 4.x) -->
+        <!-- Soot 4 - Java static analysis framework (org.soot-oss; required for Qilin compatibility) -->
         <dependency>
-            <groupId>ca.mcgill.sable</groupId>
+            <groupId>org.soot-oss</groupId>
             <artifactId>soot</artifactId>
-            <version>3.3.0</version>
+            <version>4.2.0</version>
+        </dependency>
+
+        <!-- Qilin - Java pointer analysis framework (https://github.com/rbonifacio/QilinPTA) -->
+        <dependency>
+            <groupId>qilin</groupId>
+            <artifactId>pta</artifactId>
+            <version>0.9.7-SNAPSHOT</version>
         </dependency>
 
         <!-- JUnit 4 for testing -->

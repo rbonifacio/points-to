@@ -3,8 +3,10 @@ package br.ufpe.cin.pt.soot;
 import static org.junit.Assert.assertEquals;
 
 import br.ufpe.cin.pt.samples.PointTest;
+import br.ufpe.cin.pt.soot.CallGraphAlgorithm.*;
 import org.junit.Ignore;
 import org.junit.Test;
+
 
 /**
  * Tests that use Soot to analyze {@link PointTest#testPointsFromSources()} with different
@@ -19,16 +21,16 @@ public class PointsToTestSuite {
     /* A test configuration for testing alias between point1 and point2.
     *  This configuration must fail for SPARK.
     */
-    private final TestConfiguration configTestAliasForPoint1Point2 = new  TestConfiguration("br.ufpe.cin.pt.samples.PointsToAnalysisEntry", "main", "br.ufpe.cin.pt.samples.PointTest", "testPoints", "point1", "point2");
+    private final TestConfiguration configTestAliasForPoint1Point2 = new TestConfiguration("br.ufpe.cin.pt.samples.PointsToAnalysisEntry", "main", "br.ufpe.cin.pt.samples.PointTest", "testPoints", "point1", "point2", "br.ufpe.cin.pt.samples.Point");
 
-    private final TestConfiguration configTestAliasForPoint2Point3 = new TestConfiguration("br.ufpe.cin.pt.samples.PointsToAnalysisEntry", "main", "br.ufpe.cin.pt.samples.PointTest", "testPoints", "point2", "point3");
+    private final TestConfiguration configTestAliasForPoint2Point3 = new TestConfiguration("br.ufpe.cin.pt.samples.PointsToAnalysisEntry", "main", "br.ufpe.cin.pt.samples.PointTest", "testPoints", "point2", "point3", "br.ufpe.cin.pt.samples.Point");
 
     @Ignore("Unexpected result [...]")
     public void testPointsToWithCHAP1P2() {
         assertEquals(
                 "I was expecting that CHA (without SPARK) would report NO_ALIAS for p1/p2, but it is reporting that they may alias.",
                 AliasTransformer.Result.PTA_NO_EVIDENCE_OF_ALIAS,
-                new Driver().runAnalysis(configTestAliasForPoint1Point2.setCallGraph("CHA")));
+                new Driver().runAnalysis(configTestAliasForPoint1Point2.setCallGraph(CallGraphAlgorithm.SOOT_CHA)));
     }
 
     @Ignore("Unexpected result [...]")
@@ -36,7 +38,7 @@ public class PointsToTestSuite {
         assertEquals(
             "I was expecting that CHA (without SPARK) would report NO_ALIAS for p1/p2, but it is reporting that they may alias.",
             AliasTransformer.Result.PTA_NO_EVIDENCE_OF_ALIAS,
-            new Driver().runAnalysis(configTestAliasForPoint2Point3.setCallGraph("CHA")));
+            new Driver().runAnalysis(configTestAliasForPoint2Point3.setCallGraph(CallGraphAlgorithm.SOOT_CHA)));
     }
 
     @Test
@@ -44,7 +46,7 @@ public class PointsToTestSuite {
         assertEquals(
                 "Spark (precise) should report NO_ALIAS for p1/p2",
                 AliasTransformer.Result.PTA_NO_EVIDENCE_OF_ALIAS,
-                new Driver().runAnalysis(configTestAliasForPoint1Point2.setCallGraph("SPARK")));
+                new Driver().runAnalysis(configTestAliasForPoint1Point2.setCallGraph(CallGraphAlgorithm.SOOT_SPARK)));
     }
 
     @Test
@@ -52,7 +54,7 @@ public class PointsToTestSuite {
         assertEquals(
             "Spark (precise) should report MAY_ALIAS for p2/p3",
                 AliasTransformer.Result.PTA_SUGGESTS_ALIAS,
-                new Driver().runAnalysis(configTestAliasForPoint2Point3.setCallGraph("SPARK")));
+                new Driver().runAnalysis(configTestAliasForPoint2Point3.setCallGraph(CallGraphAlgorithm.SOOT_SPARK)));
     }
 
     @Ignore("Memory issues [...]. I will fix this later.")
@@ -60,7 +62,7 @@ public class PointsToTestSuite {
         assertEquals(
                 "RTA should report NO_ALIAS for p1/p2",
                 AliasTransformer.Result.PTA_NO_EVIDENCE_OF_ALIAS,
-                new Driver().runAnalysis(configTestAliasForPoint1Point2.setCallGraph("RTA")));
+                new Driver().runAnalysis(configTestAliasForPoint1Point2.setCallGraph(CallGraphAlgorithm.SOOT_RTA)));
     }
 
     @Ignore("Memory issues [...]. I will fix this later.")
@@ -68,7 +70,7 @@ public class PointsToTestSuite {
         assertEquals(
                 "RTA should report NO_ALIAS for p2/p3",
                 AliasTransformer.Result.PTA_NO_EVIDENCE_OF_ALIAS,
-                new Driver().runAnalysis(configTestAliasForPoint2Point3.setCallGraph("RTA")));
+                new Driver().runAnalysis(configTestAliasForPoint2Point3.setCallGraph(CallGraphAlgorithm.SOOT_RTA)));
     }
 
     @Ignore("Unexpected result [...]")
@@ -76,7 +78,7 @@ public class PointsToTestSuite {
         assertEquals(
                 "I was expecting that VTA (even with SPARK) would report NO_ALIAS for p1/p2, but it is reporting that they may alias.",
                 AliasTransformer.Result.PTA_NO_EVIDENCE_OF_ALIAS,
-                new Driver().runAnalysis(configTestAliasForPoint1Point2.setCallGraph("VTA")));
+                new Driver().runAnalysis(configTestAliasForPoint1Point2.setCallGraph(CallGraphAlgorithm.SOOT_VTA)));
     }
 
     @Ignore("Unexpected result [...]")
@@ -84,6 +86,14 @@ public class PointsToTestSuite {
         assertEquals(
                 "I was expecting that VTA (even with SPARK) would report NO_ALIAS for p2/p2, but it is reporting that they may alias.",
                 AliasTransformer.Result.PTA_NO_EVIDENCE_OF_ALIAS,
-        new Driver().runAnalysis(configTestAliasForPoint2Point3.setCallGraph("VTA")));
+        new Driver().runAnalysis(configTestAliasForPoint2Point3.setCallGraph(CallGraphAlgorithm.SOOT_VTA)));
+    }
+
+    @Ignore
+    public void testPointsToQilinINSENSP2P3() {
+        assertEquals(
+                "Qilin context-insensitive PTA should report MAY_ALIAS for point2/point3 (point3 = point2).",
+                AliasTransformer.Result.PTA_SUGGESTS_ALIAS,
+                new Driver().runAnalysis(configTestAliasForPoint2Point3.setCallGraph(CallGraphAlgorithm.QILIN_INSENS)));
     }
 }

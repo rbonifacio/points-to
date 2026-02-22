@@ -1,6 +1,6 @@
 # Points-to and Call Graph
 
-This project explores **the impact of the call graph on points-to relationships** using [Soot](https://soot-oss.github.io/soot/) (version 3.3.0). We focus on a single test scenario, `PointTest.testPoints()`, and compare how different call-graph configurations affect the points-to information that Soot produces.
+This project explores **the impact of the call graph on points-to relationships** using [Soot](https://soot-oss.github.io/soot/) 4 (org.soot-oss:soot, e.g. 4.4.1). We focus on a single test scenario, `PointTest.testPoints()`, and compare how different call-graph configurations affect the points-to information that Soot produces.
 
 A notable finding: for some imprecise algorithms (e.g. **CHA**), Soot still populates points-to information **even when Spark is disabled** in the configuration. That is, the call graph alone (CHA) drives a form of points-to result that we can query.
 
@@ -101,6 +101,7 @@ Several tests are marked **`@Ignore`** so that the suite still documents expecta
 
 - **testPointsToWithSparkP1P2** – Spark reports no evidence of alias for point1 vs point2 (as expected).
 - **testPointsToWithSparkP2P3** – Spark reports may-alias for point2 vs point3 (as expected).
+- **testPointsToQilinINSENSP2P3** – Qilin context-insensitive PTA reports may-alias for point2 vs point3 (requires Soot 4, org.soot-oss:soot).
 
 So the suite both validates Spark on this scenario and keeps a written record of CHA, RTA, and VTA behaviour (and known issues) via ignored tests.
 
@@ -123,5 +124,6 @@ mvn test
 
 ## Requirements
 
-- Java 8 (Soot 3.3.0 expects `rt.jar` on the classpath when resolving the JDK).
+- **Java 8–11** recommended for running analysis (Soot 4.x may support newer JDKs; on Java 21+ you may see “Unsupported class file major version 65” with older Soot 4.3—try 4.4.1 or 4.7.0). For JDK 8, `rt.jar` is expected on the classpath when resolving the JDK.
+- **Soot 4** (org.soot-oss:soot) is required; Qilin is built against Soot 4’s API (e.g. `Scene.getTypeNumberer()`).
 - Maven 3.x.

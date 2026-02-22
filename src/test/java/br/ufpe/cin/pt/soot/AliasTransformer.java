@@ -2,6 +2,7 @@ package br.ufpe.cin.pt.soot;
 
 import java.util.Map;
 
+import br.ufpe.cin.pt.soot.pta.PTA;
 import soot.Body;
 import soot.Local;
 import soot.PointsToAnalysis;
@@ -26,19 +27,21 @@ public final class AliasTransformer extends SceneTransformer {
         PTA_SUGGESTS_ALIAS
     }
 
-    private String targetClass;
-    private String targetMethod;
-    private String local1;
-    private String local2;
-    private String type;
+    private final String targetClass;
+    private final String targetMethod;
+    private final String local1;
+    private final String local2;
+    private final String targetType;
+    private PTA pta;
     private Result result = Result.NOT_PROCESSED;
 
-    public AliasTransformer(String targetClass, String targetMethod, String local1, String local2, String type) {
-        this.targetClass = targetClass;
-        this.targetMethod = targetMethod;
-        this.local1 = local1;
-        this.local2 = local2;
-        this.type = type;
+    public AliasTransformer(TestConfiguration config, PTA pta) {
+        this.targetClass = config.targetClass;
+        this.targetMethod = config.targetMethod;
+        this.local1 = config.local1;
+        this.local2 = config.local2;
+        this.targetType = config.targetType;
+        this.pta = pta;
     }
 
     /** Result after the transformer has run; {@link Result#NOT_PROCESSED} until testPoints() is processed. */
@@ -48,12 +51,10 @@ public final class AliasTransformer extends SceneTransformer {
 
     @Override
     protected void internalTransform(String phaseName, Map<String, String> options) {
-        PointsToAnalysis pta = Scene.v().getPointsToAnalysis();
-
         QueueReader<soot.MethodOrMethodContext> reader = Scene.v().getReachableMethods().listener();
         while (reader.hasNext()) {
             SootMethod method = reader.next().method();
-            Result r = processTargetMethod(method, pta);
+            Result r = processTargetMethod(method);
             if (r != Result.NOT_PROCESSED) {
                 result = r;
                 return;
@@ -62,14 +63,14 @@ public final class AliasTransformer extends SceneTransformer {
         // Fallback: with Spark on-fly-cg, testPoints() may not be in reachable set yet; look up by name
         SootClass clazz = Scene.v().getSootClass(targetClass);
         SootMethod method = clazz.getMethodByName(targetMethod);
-        Result r = processTargetMethod(method, pta);
+        Result r = processTargetMethod(method);
         if (r != Result.NOT_PROCESSED) {
             result = r;
         }
     }
 
     /** Returns the may-alias result if method is the target and could be processed, else {@link Result#NOT_PROCESSED}. */
-    private Result processTargetMethod(SootMethod method, PointsToAnalysis pta) {
+    private Result processTargetMethod(SootMethod method) {
         if (!this.targetClass.equals(method.getDeclaringClass().getName())
                 || !this.targetMethod.equals(method.getName())
                 || !method.hasActiveBody()) {
@@ -91,13 +92,11 @@ public final class AliasTransformer extends SceneTransformer {
         if (pta == null) {
             return Result.PTA_UNAVAILABLE;
         }
-        PointsToSet pts1 = pta.reachingObjects(l1);
-        PointsToSet pts2 = pta.reachingObjects(l2);
-        return pts1.hasNonEmptyIntersection(pts2) ? Result.PTA_SUGGESTS_ALIAS : Result.PTA_NO_EVIDENCE_OF_ALIAS;
+        return pta.hasIntersectingObjects(l1, l2) ? Result.PTA_SUGGESTS_ALIAS : Result.PTA_NO_EVIDENCE_OF_ALIAS;
     }
 
     private boolean isTargetType(Local local) {
         String typeName = local.getType().toString();
-        return typeName.equals(type);
+        return typeName.equals(targetType);
     }
 }
