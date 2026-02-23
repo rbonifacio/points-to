@@ -72,8 +72,7 @@ public final class AliasTransformer extends SceneTransformer {
     /** Returns the may-alias result if method is the target and could be processed, else {@link Result#NOT_PROCESSED}. */
     private Result processTargetMethod(SootMethod method) {
         if (!this.targetClass.equals(method.getDeclaringClass().getName())
-                || !this.targetMethod.equals(method.getName())
-                || !method.hasActiveBody()) {
+                || !this.targetMethod.equals(method.getName())) {
             return Result.NOT_PROCESSED;
         }
 

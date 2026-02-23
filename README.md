@@ -1,8 +1,11 @@
 # Points-to and Call Graph
 
-This project explores **the impact of the call graph on points-to relationships** using [Soot](https://soot-oss.github.io/soot/) 4 (org.soot-oss:soot) and [Qilin](https://github.com/rbonifacio/QilinPTA) (our fork of [QilinPTA/Qilin](https://github.com/QilinPTA/Qilin), where we downgrade the build from newer Java versions to Java 8). It focuses on a single test scenario, `PointTest.testPoints()`, and compares how different call-graph and points-to configurations affect the resulting alias information.
+This project explores **the impact of the call graph on points-to relationships** using [Soot](https://soot-oss.github.io/soot/) 4 (org.soot-oss:soot) and [Qilin](https://github.com/rbonifacio/QilinPTA) (our fork of [QilinPTA/Qilin](https://github.com/QilinPTA/Qilin), built for Java 8). It uses two scenarios:
 
-A notable finding: for some imprecise algorithms (e.g. **CHA**), Soot still populates points-to information **even when Spark is disabled** in the configuration. That is, the call graph alone (CHA) drives a form of points-to result that we can query.
+1. **Point scenario** – `PointTest.testPoints()`: compares how different call-graph/PTA configurations (CHA, Spark, RTA, VTA, Qilin INSENS, Qilin 1C) affect alias results for locals `point1`, `point2`, `point3`.
+2. **Context scenario** – `samples.context.Main.main()`: tests whether context-sensitive vs context-insensitive analyses correctly distinguish `v1`/`v2` (returned from two calls to `B.foo(o, a1)`) and their relation to `o1`/`o2`.
+
+A notable finding: for some imprecise algorithms (e.g. **CHA**), Soot still populates points-to information **even when Spark is disabled** in the configuration.
 
 ---
 
@@ -28,6 +31,33 @@ The analysis entry point is `PointsToAnalysisEntry.main()`, which invokes `new P
 
 ---
 
+## Scenario: `samples.context.Main.main()`
+
+Second scenario used to study **context sensitivity**:
+
+```java
+public static void main(String[] args) {
+    Object o1 = new Object();
+    B b1 = new B();
+    A a1 = new A();
+    Object v1 = b1.foo(o1, a1);
+    Object o2 = new Object();
+    B b2 = new B();
+    Object v2 = b2.foo(o2, a1);
+    System.out.println(v1.equals(v2));
+}
+```
+
+- Semantically, `v1` should point only to `o1`, and `v2` only to `o2` (each call to `B.foo` returns its first argument).
+- A **context-insensitive** PTA may merge the two calls and report that `v1` and `v2` both point to `o1` and `o2` (e.g. through the shared `A a1` and its field `f`).
+- A **1-callsite-sensitive** PTA (Qilin 1C) should distinguish the two calls and keep `v1`/`v2` separate.
+
+Tests in `br.ufpe.cin.pt.testsuite.context` encode these expectations (Spark, Qilin INSENS, Qilin 1C). **Some Qilin context tests are commented out** because running multiple Qilin analyses in the same JVM can cause static-state issues; one test per Qilin context class is left active for now.
+
+The context example (e.g. `Main.main()` with `v1`/`v2` and two calls to `B.foo`) is from the Qilin paper: Dongjie He, Jingbo Lu, and Jingling Xue, *Qilin: A New Framework For Supporting Fine-Grained Context-Sensitivity in Java Pointer Analysis*, ECOOP 2022, [LIPIcs 222, 30:1–30:29](https://doi.org/10.4230/LIPIcs.ECOOP.2022.30).
+
+---
+
 ## Call Graph and PTA Configurations (Driver)
 
 Call graph and points-to analysis are configured in the **`Driver`** class (`br.ufpe.cin.pt.soot.Driver`) via `setCallGraph(algorithm)`:
@@ -39,6 +69,7 @@ Call graph and points-to analysis are configured in the **`Driver`** class (`br.
 | **RTA**   | `cg.spark` enabled, `rta:true`, `on-fly-cg:false`. Rapid Type Analysis style. |
 | **VTA**   | `cg.spark` enabled, `vta:true`, `on-fly-cg:false`. Variable Type Analysis style. |
 | **QILIN_INSENS** | Soot’s CHA and Spark disabled; Qilin runs its context-insensitive PTA and builds the call graph. |
+| **QILIN_1C**     | Same as above; Qilin runs its 1-callsite-sensitive PTA (PTAPattern `"1c"`). |
 
 Relevant snippet from `Driver.setCallGraph()`:
 
@@ -60,19 +91,19 @@ So for **CHA**, Spark is explicitly turned off; for **SPARK**, **RTA**, and **VT
 
 ## Test Suite: Purpose and Structure
 
-The **`PointsToTestSuite`** (`br.ufpe.cin.pt.testsuite.PointsToTestSuite`) has two goals:
+Test suites are split into two packages:
 
-1. **Document observed behaviour** – For each call-graph configuration (CHA, SPARK, RTA, VTA) and each pair of locals, the tests encode what the current Soot setup reports (no evidence of alias vs suggests alias). This gives a clear, executable record of how the call graph affects points-to in this scenario.
-2. **Regression and exploration** – Tests that pass act as regression tests; tests that are `@Ignore`d document surprising or not-yet-understood results (or environment issues) without failing the build.
+- **`br.ufpe.cin.pt.testsuite.point`** – Point scenario (`PointTest.testPoints()`). **`PointsToTestSuite`** documents behaviour for CHA, SPARK, RTA, VTA; separate classes run Qilin INSENS and 1C (one JVM per class to avoid static state issues).
+- **`br.ufpe.cin.pt.testsuite.context`** – Context scenario (`Main.main()`). **`SPARKContextPointsToTestSuite`**, **`QILINInsensContextPointsToTestSuite`**, and **`QILIN1CContextPointsToTestSuite`** each run in their own JVM. Some methods in the Qilin context suites are **commented out** because running several Qilin tests in the same VM has caused problems; the intent is to keep one active test per Qilin context class for now.
 
 Each test runs the **Driver** with a **`TestConfiguration`** that specifies:
 
-- Entry class and method (e.g. `PointsToAnalysisEntry.main`)
-- Target class and method (`PointTest.testPoints()`)
+- Entry class and method (e.g. `PointsToAnalysisEntry.main` or `Main.main`)
+- Target class and method (e.g. `PointTest.testPoints` or `Main.main`)
 - The two locals to check for may-alias
-- The call graph / PTA algorithm (CHA, SPARK, RTA, VTA, QILIN_INSENS)
+- The call graph / PTA algorithm (CHA, SPARK, RTA, VTA, QILIN_INSENS, QILIN_1C)
 
-There are two configurations:
+There are two configurations in the **point** scenario:
 
 | Configuration | Locals | Relationship in code |
 |---------------|--------|------------------------|
@@ -98,14 +129,22 @@ Several tests are marked **`@Ignore`** so that the suite still documents expecta
 | **testPointsToWithRTAP1P2**, **testPointsToWithRTAP2P3** | **Memory issues.** RTA in this setup triggers high memory use or timeouts. Ignored with the intent to fix the configuration or environment later. |
 | **testPointsToWithVTAP1P3**, **testPointsToWithVTAP2P3** | **Unexpected result.** The tests expect `PTA_NO_EVIDENCE_OF_ALIAS` for the chosen pairs, but VTA (with Spark) reports may-alias. Ignored to document the mismatch while the behaviour is investigated. |
 
-**Tests that run (no `@Ignore`):**
+**Tests that run (point scenario, no `@Ignore`):**
 
 - **testPointsToWithSparkP1P2** – Spark reports no evidence of alias for point1 vs point2 (as expected).
 - **testPointsToWithSparkP2P3** – Spark reports may-alias for point2 vs point3 (as expected).
-- **testPointsToQilinINSENSP1P2** – Qilin context-insensitive PTA reports no alias for point1 vs point2 (`PointsToTestSuiteQilinP1P2Test`, runs in its own JVM).
-- **testPointsToQilinINSENSP2P3** – Qilin context-insensitive PTA reports may-alias for point2 vs point3 (`PointsToTestSuiteQilinP2P3Test`, runs in its own JVM).
+- **testPointsToQilinINSENSP1P2** – Qilin context-insensitive PTA, point1/point2 (`PointsToTestSuiteQilinP1P2Test`, own JVM).
+- **testPointsToQilinINSENSP2P3** – Qilin context-insensitive PTA, point2/point3 (`PointsToTestSuiteQilinP2P3Test`, own JVM).
+- **testPointsToQilin1CP1P2** – Qilin 1-callsite-sensitive PTA, point1/point2 (`PointsToTestSuiteQilin1CP1P2Test`, own JVM).
+- **testPointsToQilin1CP2P3** – Qilin 1-callsite-sensitive PTA, point2/point3 (`PointsToTestSuiteQilin1CP2P3Test`, own JVM).
 
-The two Qilin tests live in separate test classes so that each runs in a fresh JVM (Surefire `reuseForks=false`), avoiding static state issues between runs. The suite validates Spark and Qilin on this scenario and keeps a written record of CHA, RTA, and VTA behaviour (and known issues) via ignored tests.
+**Context scenario** (`Main.main()`, package `testsuite.context`):
+
+- **SPARKContextPointsToTestSuite** – e.g. `testSPARK_v1_v2_mayAlias` (Spark may report v1/v2 as may-alias).
+- **QILINInsensContextPointsToTestSuite** – one active test: `testQilinInsens_v1_v2_mayAlias`; other methods (v1/o2, v2/o1) are commented out to avoid running multiple Qilin tests in the same JVM.
+- **QILIN1CContextPointsToTestSuite** – one active test: `testQilin1C_v1_v2_noAlias`; v1/o2 and v2/o1 tests are commented out for the same reason.
+
+Qilin tests use separate test classes so each runs in a fresh JVM (Surefire `reuseForks=false`), avoiding static state issues. The suite validates Spark and Qilin on both scenarios and keeps a written record of CHA, RTA, and VTA behaviour (and known issues) via ignored tests.
 
 ---
 
@@ -126,14 +165,15 @@ mvn clean test
 
 All packages live under `br.ufpe.cin.pt` (test source root: `src/test/java/`).
 
-- **`samples`** – Scenario code: `PointTest`, `Point`, `PointsToAnalysisEntry`.
-- **`soot`** – Soot/Qilin wiring: `Driver`, `AliasTransformer`, `TestConfiguration`, and `pta` (SootPTA, QilinPTA, PTASingleton).
-- **`testsuite`** – Test suites (same level as `soot`): `PointsToTestSuite` (Spark, CHA, RTA, VTA), `PointsToTestSuiteQilinP1P2Test`, `PointsToTestSuiteQilinP2P3Test`.
+- **`samples`** – Scenario code: `PointTest`, `Point`, `PointsToAnalysisEntry` (point scenario); `samples.context`: `Main`, `A`, `B` (context scenario).
+- **`soot`** – Soot/Qilin wiring: `Driver`, `AliasTransformer`, `TestConfiguration`, `CallGraphAlgorithm`, and `pta` (SootPTA, QilinPTA, PTASingleton).
+- **`testsuite.point`** – Point scenario: `PointsToTestSuite` (Spark, CHA, RTA, VTA), `PointsToTestSuiteQilinP1P2Test`, `PointsToTestSuiteQilinP2P3Test`, `PointsToTestSuiteQilin1CP1P2Test`, `PointsToTestSuiteQilin1CP2P3Test`.
+- **`testsuite.context`** – Context scenario: `SPARKContextPointsToTestSuite`, `QILINInsensContextPointsToTestSuite`, `QILIN1CContextPointsToTestSuite`.
 
 ---
 
 ## Requirements
 
-- **Java 8–11** recommended (Soot 4.x may support newer JDKs; on Java 21+ you may see “Unsupported class file major version 65” with older Soot 4.3—use 4.4.1 or newer). For JDK 8, `rt.jar` is expected on the classpath when resolving the JDK.
+- **Java 8** to run tests. Soot/ASM in this stack do not support Java 21 bytecode (you get "Unsupported class file major version 65"). Use JDK 8 for `mvn test` (e.g. set `JAVA_HOME` to JDK 8).
 - **Soot 4** (org.soot-oss:soot) is required; the [Qilin](https://github.com/rbonifacio/QilinPTA) dependency (our fork, built for Java 8) is built against Soot 4’s API.
 - **Maven 3.x.**

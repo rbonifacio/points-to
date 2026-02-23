@@ -1,4 +1,4 @@
-package br.ufpe.cin.pt.testsuite;
+package br.ufpe.cin.pt.testsuite.point;
 
 import static org.junit.Assert.assertEquals;
 
@@ -92,6 +92,6 @@ public class PointsToTestSuite {
         new Driver().runAnalysis(configTestAliasForPoint2Point3.setCallGraph(CallGraphAlgorithm.SOOT_VTA)));
     }
 
-    // Qilin tests in PointsToTestSuiteQilinP1P2Test and PointsToTestSuiteQilinP2P3Test (this package);
+    // Qilin tests in PointsToTestSuiteQilin*Test (this package): INSENS (P1P2, P2P3) and 1C (P1P2, P2P3);
     // each runs in a fresh JVM (Surefire forks per test class), avoiding static state issues.
 }

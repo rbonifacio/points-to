@@ -95,6 +95,7 @@ public class Driver {
                 Options.v().setPhaseOption("cg.spark", "on-fly-cg:false");
                 break;
             case QILIN_INSENS:
+            case QILIN_1C:
                 // Qilin runs its own PTA; disable Soot's so cg.apply() does not run Spark/CHA
                 Options.v().setPhaseOption("cg.cha", "enabled:false");
                 Options.v().setPhaseOption("cg.spark", "enabled:false");

@@ -5,7 +5,8 @@ public enum CallGraphAlgorithm {
     SOOT_RTA("soot::RTA"),
     SOOT_VTA("soot::VTA"),
     SOOT_SPARK("soot::SPARK"),
-    QILIN_INSENS("qilin::INSENS");
+    QILIN_INSENS("qilin::INSENS"),
+    QILIN_1C("qilin::1C");
 
     final String name;
 

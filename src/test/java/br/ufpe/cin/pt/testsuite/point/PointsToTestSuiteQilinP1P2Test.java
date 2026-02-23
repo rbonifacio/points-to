@@ -1,4 +1,4 @@
-package br.ufpe.cin.pt.testsuite;
+package br.ufpe.cin.pt.testsuite.point;
 
 import static org.junit.Assert.assertEquals;
 
@@ -11,18 +11,18 @@ import org.junit.Test;
 /**
  * Runs in a separate JVM (own test class) so Qilin/Soot static state does not affect other Qilin tests.
  */
-public class PointsToTestSuiteQilinP2P3Test {
+public class PointsToTestSuiteQilinP1P2Test {
 
     private final TestConfiguration config = new TestConfiguration(
             "br.ufpe.cin.pt.samples.PointsToAnalysisEntry", "main",
             "br.ufpe.cin.pt.samples.PointTest", "testPoints",
-            "point2", "point3", "br.ufpe.cin.pt.samples.Point");
+            "point1", "point2", "br.ufpe.cin.pt.samples.Point");
 
     @Test
-    public void testPointsToQilinINSENSP2P3() {
+    public void testPointsToQilinINSENSP1P2() {
         assertEquals(
-                "Qilin context-insensitive PTA should report MAY_ALIAS for point2/point3 (point3 = point2).",
-                AliasTransformer.Result.PTA_SUGGESTS_ALIAS,
+                "Qilin context-insensitive PTA should report NO_ALIAS for point1/point2.",
+                AliasTransformer.Result.PTA_NO_EVIDENCE_OF_ALIAS,
                 new Driver().runAnalysis(config.setCallGraph(CallGraphAlgorithm.QILIN_INSENS)));
     }
 }
