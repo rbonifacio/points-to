@@ -77,25 +77,30 @@ public class Driver {
     private static void setCallGraph(CallGraphAlgorithm algorithm) {
         switch (algorithm) {
             case SOOT_CHA:
+                System.out.println("Enable Soot CHA CG");
                 Options.v().setPhaseOption("cg.cha", "enabled:true");
                 Options.v().setPhaseOption("cg.spark", "enabled:false");
                 break;
             case SOOT_SPARK:
+                System.out.println("Enable Soot SPARK CG");
                 Options.v().setPhaseOption("cg.spark", "enabled:true");
                 Options.v().setPhaseOption("cg.spark", "on-fly-cg:true");
                 break;
             case SOOT_RTA:
+                System.out.println("Enable Soot RTA CG");
                 Options.v().setPhaseOption("cg.spark", "enabled:true");
                 Options.v().setPhaseOption("cg.spark", "rta:true");
                 Options.v().setPhaseOption("cg.spark", "on-fly-cg:false");
                 break;
             case SOOT_VTA:
+                System.out.println("Enable Soot VTA CG");
                 Options.v().setPhaseOption("cg.spark", "enabled:true");
                 Options.v().setPhaseOption("cg.spark", "vta:true");
                 Options.v().setPhaseOption("cg.spark", "on-fly-cg:false");
                 break;
             case QILIN_INSENS:
             case QILIN_1C:
+                System.out.println("Enable QILIN_1C CG");
                 // Qilin runs its own PTA; disable Soot's so cg.apply() does not run Spark/CHA
                 Options.v().setPhaseOption("cg.cha", "enabled:false");
                 Options.v().setPhaseOption("cg.spark", "enabled:false");
@@ -126,11 +131,12 @@ public class Driver {
 
     /** Library path for Qilin (-libpath): classpath minus app dir (java.class.path + rt + jce). */
     private static String buildLibPath() {
-        String cp = System.getProperty("java.class.path");
+        //String cp = System.getProperty("java.class.path");
+        String testClasses = new File("target/test-classes").getAbsolutePath();
         StringBuilder sb = new StringBuilder();
-        if (cp != null && !cp.isEmpty()) {
-            sb.append(cp);
-        }
+        //if (cp != null && !cp.isEmpty()) {
+        //    sb.append(cp);
+        // }
         String rt = pathToRT();
         if (rt != null) {
             if (sb.length() > 0) sb.append(File.pathSeparator);

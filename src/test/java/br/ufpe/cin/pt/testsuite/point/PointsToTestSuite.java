@@ -44,6 +44,7 @@ public class PointsToTestSuite {
             new Driver().runAnalysis(configTestAliasForPoint2Point3.setCallGraph(CallGraphAlgorithm.SOOT_CHA)));
     }
 
+    //@Ignore
     @Test
     public void testPointsToWithSparkP1P2() {
         assertEquals(
@@ -52,6 +53,7 @@ public class PointsToTestSuite {
                 new Driver().runAnalysis(configTestAliasForPoint1Point2.setCallGraph(CallGraphAlgorithm.SOOT_SPARK)));
     }
 
+    //@Ignore
     @Test
     public void testPointsToWithSparkP2P3() {
         assertEquals(
@@ -60,7 +62,7 @@ public class PointsToTestSuite {
                 new Driver().runAnalysis(configTestAliasForPoint2Point3.setCallGraph(CallGraphAlgorithm.SOOT_SPARK)));
     }
 
-    @Ignore("Memory issues [...]. I will fix this later.")
+    @Ignore("Unexpected result [...]")
     public void testPointsToWithRTAP1P2() {
         assertEquals(
                 "RTA should report NO_ALIAS for p1/p2",
@@ -68,7 +70,7 @@ public class PointsToTestSuite {
                 new Driver().runAnalysis(configTestAliasForPoint1Point2.setCallGraph(CallGraphAlgorithm.SOOT_RTA)));
     }
 
-    @Ignore("Memory issues [...]. I will fix this later.")
+    @Ignore("Unexpected result [...]")
     public void testPointsToWithRTAP2P3() {
         assertEquals(
                 "RTA should report NO_ALIAS for p2/p3",

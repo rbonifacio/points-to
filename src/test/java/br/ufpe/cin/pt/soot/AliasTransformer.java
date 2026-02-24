@@ -91,6 +91,7 @@ public final class AliasTransformer extends SceneTransformer {
         if (pta == null) {
             return Result.PTA_UNAVAILABLE;
         }
+        System.out.println("CG size: " + Scene.v().getCallGraph().size());
         return pta.hasIntersectingObjects(l1, l2) ? Result.PTA_SUGGESTS_ALIAS : Result.PTA_NO_EVIDENCE_OF_ALIAS;
     }
 
