@@ -14,7 +14,6 @@ import org.junit.Test;
  */
 public class PointsToTestSuiteQilin1CP1P2Test {
 
-    //"br.ufpe.cin.pt.samples.PointsToAnalysisEntry", "main", "br.ufpe.cin.pt.samples.PointTest", "testPoints", "point1", "point2", "br.ufpe.cin.pt.samples.Point"
     private final TestConfiguration config = new TestConfiguration(
             "br.ufpe.cin.pt.samples.PointsToAnalysisEntry", "main",
             "br.ufpe.cin.pt.samples.PointTest", "testPoints",
@@ -23,7 +22,7 @@ public class PointsToTestSuiteQilin1CP1P2Test {
     @Test
     public void testPointsToQilin1CP1P2() {
         assertEquals(
-                "Qilin 1-callsite-sensitive PTA should report NO_ALIAS for point1/point2.",
+                "Qilin 1-callsite-sensitive PTA should report NO_ALIAS for point1/point2, because point1 and point2 are created from different allocations (distinct Point objects).",
                 AliasTransformer.Result.PTA_NO_EVIDENCE_OF_ALIAS,
                 new Driver().runAnalysis(config.setCallGraph(CallGraphAlgorithm.QILIN_1C)));
     }

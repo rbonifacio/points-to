@@ -21,7 +21,7 @@ public class PointsToTestSuiteQilinP1P2Test {
     @Test
     public void testPointsToQilinINSENSP1P2() {
         assertEquals(
-                "Qilin context-insensitive PTA should report NO_ALIAS for point1/point2.",
+                "Qilin context-insensitive PTA should report NO_ALIAS for point1/point2, because point1 and point2 are created from different allocations (distinct Point objects).",
                 AliasTransformer.Result.PTA_NO_EVIDENCE_OF_ALIAS,
                 new Driver().runAnalysis(config.setCallGraph(CallGraphAlgorithm.QILIN_INSENS)));
     }

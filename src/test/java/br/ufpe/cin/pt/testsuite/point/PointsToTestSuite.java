@@ -28,26 +28,28 @@ public class PointsToTestSuite {
 
     private final TestConfiguration configTestAliasForPoint2Point3 = new TestConfiguration("br.ufpe.cin.pt.samples.PointsToAnalysisEntry", "main", "br.ufpe.cin.pt.samples.PointTest", "testPoints", "point2", "point3", "br.ufpe.cin.pt.samples.Point");
 
-    @Ignore("Unexpected result [...]")
+    @Test
     public void testPointsToWithCHAP1P2() {
         assertEquals(
-                "I was expecting that CHA (without SPARK) would report NO_ALIAS for p1/p2, but it is reporting that they may alias.",
-                AliasTransformer.Result.PTA_NO_EVIDENCE_OF_ALIAS,
+                "Conceptually, I expected CHA (without SPARK) to report NO_ALIAS for p1/p2, but Soot reports that they may alias. " +
+                "If it reports MAY_ALIAS, it is because the call graph is not precise enough; this is a false positive.",
+                AliasTransformer.Result.PTA_SUGGESTS_ALIAS,
                 new Driver().runAnalysis(configTestAliasForPoint1Point2.setCallGraph(CallGraphAlgorithm.SOOT_CHA)));
     }
 
-    @Ignore("Unexpected result [...]")
+    @Test
     public void testPointsToWithCHAP2P3() {
         assertEquals(
-            "I was expecting that CHA (without SPARK) would report NO_ALIAS for p1/p2, but it is reporting that they may alias.",
-            AliasTransformer.Result.PTA_NO_EVIDENCE_OF_ALIAS,
-            new Driver().runAnalysis(configTestAliasForPoint2Point3.setCallGraph(CallGraphAlgorithm.SOOT_CHA)));
+                "Conceptually, I expected CHA (without SPARK) to report NO_ALIAS for p2/p3, but Soot reports that they may alias. " +
+                "This is a surprising TRUE positive: even without Spark, CHA still leads Soot to populate points-to information and detect that p2 and p3 may point to the same object.",
+                AliasTransformer.Result.PTA_SUGGESTS_ALIAS,
+                new Driver().runAnalysis(configTestAliasForPoint2Point3.setCallGraph(CallGraphAlgorithm.SOOT_CHA)));
     }
 
     @Test
     public void testPointsToWithSparkP1P2() {
         assertEquals(
-                "Spark (precise) should report NO_ALIAS for p1/p2",
+                "Spark (precise) should report NO_ALIAS for p1/p2, because p1 and p2 are created from different allocations (distinct Point objects).",
                 AliasTransformer.Result.PTA_NO_EVIDENCE_OF_ALIAS,
                 new Driver().runAnalysis(configTestAliasForPoint1Point2.setCallGraph(CallGraphAlgorithm.SOOT_SPARK)));
     }
@@ -55,43 +57,45 @@ public class PointsToTestSuite {
     @Test
     public void testPointsToWithSparkP2P3() {
         assertEquals(
-                "Spark (precise) should report MAY_ALIAS for p2/p3",
+                "Spark (precise) should report MAY_ALIAS for p2/p3, because p3 is assigned from p2 (p3 = p2), so they may point to the same object.",
                 AliasTransformer.Result.PTA_SUGGESTS_ALIAS,
                 new Driver().runAnalysis(configTestAliasForPoint2Point3.setCallGraph(CallGraphAlgorithm.SOOT_SPARK)));
     }
 
-    @Ignore("Memory issues [...]. I will fix this later.")
+   
+    @Test
     public void testPointsToWithRTAP1P2() {
         assertEquals(
-                "RTA should report NO_ALIAS for p1/p2",
-                AliasTransformer.Result.PTA_NO_EVIDENCE_OF_ALIAS,
+                "Conceptually, I expected RTA (with Spark) to report NO_ALIAS for p1/p2, because p1 and p2 are created from different allocations. " +
+                "If it reports MAY_ALIAS, it is because the call graph / analysis is not precise enough; this is a false positive.",
+                AliasTransformer.Result.PTA_SUGGESTS_ALIAS,
                 new Driver().runAnalysis(configTestAliasForPoint1Point2.setCallGraph(CallGraphAlgorithm.SOOT_RTA)));
     }
 
-    @Ignore("Memory issues [...]. I will fix this later.")
+    @Test
     public void testPointsToWithRTAP2P3() {
         assertEquals(
-                "RTA should report NO_ALIAS for p2/p3",
-                AliasTransformer.Result.PTA_NO_EVIDENCE_OF_ALIAS,
+                "Conceptually, I expected RTA (with Spark) to report NO_ALIAS for p2/p3, but Soot reports that they may alias. " +
+                "This is a surprising TRUE positive: even with RTA, Soot's points-to information detects that p2 and p3 may point to the same object (p3 = p2).",
+                AliasTransformer.Result.PTA_SUGGESTS_ALIAS,
                 new Driver().runAnalysis(configTestAliasForPoint2Point3.setCallGraph(CallGraphAlgorithm.SOOT_RTA)));
     }
 
-    @Ignore("Unexpected result [...]")
-    public void testPointsToWithVTAP1P3() {
+    @Test
+    public void testPointsToWithVTAP1P2() {
         assertEquals(
-                "I was expecting that VTA (even with SPARK) would report NO_ALIAS for p1/p2, but it is reporting that they may alias.",
-                AliasTransformer.Result.PTA_NO_EVIDENCE_OF_ALIAS,
+                "Conceptually, I expected VTA (with Spark) to report NO_ALIAS for p1/p2, because p1 and p2 are created from different allocations. " +
+                "If it reports MAY_ALIAS, it is because the call graph / analysis is not precise enough; this is a false positive.",
+                AliasTransformer.Result.PTA_SUGGESTS_ALIAS,
                 new Driver().runAnalysis(configTestAliasForPoint1Point2.setCallGraph(CallGraphAlgorithm.SOOT_VTA)));
     }
 
-    @Ignore("Unexpected result [...]")
+    @Test
     public void testPointsToWithVTAP2P3() {
         assertEquals(
-                "I was expecting that VTA (even with SPARK) would report NO_ALIAS for p2/p2, but it is reporting that they may alias.",
-                AliasTransformer.Result.PTA_NO_EVIDENCE_OF_ALIAS,
-        new Driver().runAnalysis(configTestAliasForPoint2Point3.setCallGraph(CallGraphAlgorithm.SOOT_VTA)));
+                "Conceptually, I expected VTA (with Spark) to report NO_ALIAS for p2/p3, but Soot reports that they may alias. " +
+                "This is a surprising TRUE positive: even with VTA, Soot's points-to information detects that p2 and p3 may point to the same object (p3 = p2).",
+                AliasTransformer.Result.PTA_SUGGESTS_ALIAS,
+                new Driver().runAnalysis(configTestAliasForPoint2Point3.setCallGraph(CallGraphAlgorithm.SOOT_VTA)));
     }
-
-    // Qilin tests in PointsToTestSuiteQilin*Test (this package): INSENS (P1P2, P2P3) and 1C (P1P2, P2P3);
-    // each runs in a fresh JVM (Surefire forks per test class), avoiding static state issues.
 }

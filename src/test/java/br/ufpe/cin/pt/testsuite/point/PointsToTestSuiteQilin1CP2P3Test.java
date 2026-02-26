@@ -22,7 +22,8 @@ public class PointsToTestSuiteQilin1CP2P3Test {
     @Test
     public void testPointsToQilin1CP2P3() {
         assertEquals(
-                "Qilin 1-callsite-sensitive PTA should report MAY_ALIAS for point2/point3 (point3 = point2).",
+                "Conceptually, I expected Qilin 1-callsite-sensitive PTA to report MAY_ALIAS for point2/point3, because point3 is assigned from point2 (point3 = point2), so they may point to the same object. "
+                + "However, Qilin 1C currently reports NO_ALIAS (PTA_NO_EVIDENCE_OF_ALIAS) for this pair; this is a surprising FALSE negative.",
                 AliasTransformer.Result.PTA_NO_EVIDENCE_OF_ALIAS,
                 new Driver().runAnalysis(config.setCallGraph(CallGraphAlgorithm.QILIN_1C)));
     }
