@@ -20,14 +20,24 @@ public class Driver {
      * returns the may-alias result.
      */
     public AliasTransformer.Result runAnalysis(TestConfiguration config) {
-        setSootOptions();
-        setCallGraph(config.algorithm);
+        G.reset();
+        boolean isQilin = config.algorithm.getName().startsWith("qilin");
+        if (isQilin) {
+            // Configure Qilin's view of the application first (APP_PATH, LIB_PATH, JRE, MAIN_CLASS, INCLUDE/EXCLUDE).
+            configureQilin(config);
+            // Then configure Soot in a way that mirrors Qilin's own driver.Main.setupSoot() as closely as is practical here.
+            setSootOptionsForQilin();
+            setCallGraph(config.algorithm);
+        } else {
+            // Pure Soot configuration for CHA/RTA/VTA/SPARK.
+            setSootOptionsForSoot();
+            setCallGraph(config.algorithm);
+        }
         try {
             Scene.v().loadNecessaryClasses();
             Scene.v().setEntryPoints(getEntryPoints(config.entryClass, config.entryMethod));
             AliasTransformer transformer = null;
-            if (config.algorithm.getName().startsWith("qilin")) {
-                configureQilin(config);
+            if (isQilin) {
                 PTA pta = createQilinPTA(config.algorithm);
                 pta.run();
                 PTASingleton.configureQilinPTA(pta);
@@ -46,9 +56,8 @@ public class Driver {
         }
     }
 
-    private void setSootOptions() {
-        G.reset();
-
+    /** Soot configuration for pure Soot PTAs (CHA, RTA, VTA, SPARK). */
+    private void setSootOptionsForSoot() {
         String classpath = buildClassPath();
         String processDir = new File("target/test-classes").getAbsolutePath();
 
@@ -66,6 +75,46 @@ public class Driver {
         Options.v().setPhaseOption("jb", "use-original-names:true");
         Options.v().setPhaseOption("jop", "enabled:false");   // Jimple optimization pack (copy prop, CSE, etc.)
         Options.v().setPhaseOption("wjop", "enabled:false");  // Whole-Jimple optimization pack (inliner, etc.)
+    }
+
+    /**
+     * Soot configuration for Qilin PTAs (INSENS, 1C, 1O, 1T).
+     * Mirrors Qilin's driver.Main.setupSoot() style: process_dir and classpath are driven by PTAConfig.ApplicationConfiguration.
+     */
+    private static void setSootOptionsForQilin() {
+        PTAConfig cfg = PTAConfig.v();
+        PTAConfig.ApplicationConfiguration app = cfg.getAppConfig();
+
+        // Process only the application path that Qilin is configured to analyse.
+        Options.v().set_process_dir(Collections.singletonList(app.APP_PATH));
+
+        if (app.MAIN_CLASS != null) {
+            Options.v().set_main_class(app.MAIN_CLASS);
+        }
+
+        if (app.INCLUDE != null) {
+            Options.v().set_include(app.INCLUDE);
+        }
+
+        if (app.EXCLUDE != null) {
+            Options.v().set_no_bodies_for_excluded(true);
+            Options.v().set_exclude(app.EXCLUDE);
+        }
+
+        // Classpath: APP_PATH plus whatever Qilin put into LIB_PATH (which in this integration is a pre-built classpath string).
+        StringBuilder cp = new StringBuilder();
+        cp.append(app.APP_PATH);
+        if (app.LIB_PATH != null && !app.LIB_PATH.isEmpty()) {
+            cp.append(File.pathSeparator).append(app.LIB_PATH);
+        }
+        Options.v().set_soot_classpath(cp.toString());
+
+        Options.v().set_output_format(Options.output_format_none);
+        Options.v().set_keep_line_number(true);
+        Options.v().set_full_resolver(true);
+        Options.v().set_src_prec(Options.src_prec_only_class);
+        Options.v().set_allow_phantom_refs(true);
+        Options.v().setPhaseOption("jb", "use-original-names:true");
     }
 
 

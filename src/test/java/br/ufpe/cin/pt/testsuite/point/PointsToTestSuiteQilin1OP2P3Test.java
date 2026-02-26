@@ -15,16 +15,16 @@ import org.junit.Test;
 public class PointsToTestSuiteQilin1OP2P3Test {
 
     private final TestConfiguration config = new TestConfiguration(
-            "br.ufpe.cin.pt.samples.PointTest", "testPoints",
+            "br.ufpe.cin.pt.samples.PointsToAnalysisEntry", "main",
             "br.ufpe.cin.pt.samples.PointTest", "testPoints",
             "point2", "point3", "br.ufpe.cin.pt.samples.Point");
 
     @Test
     public void testPointsToQilin1OP2P3() {
         assertEquals(
-                "Conceptually, I expected Qilin 1-object-sensitive PTA to report MAY_ALIAS for point2/point3, because point3 is assigned from point2 (point3 = point2), so they may point to the same object. "
-                + "However, Qilin 1O currently reports NO_ALIAS (PTA_NO_EVIDENCE_OF_ALIAS) for this pair; this is a surprising FALSE negative.",
-                AliasTransformer.Result.PTA_NO_EVIDENCE_OF_ALIAS,
+                "Qilin 1-object-sensitive PTA should report MAY_ALIAS for point2/point3, because point3 is assigned from point2 (point3 = point2), so they may point to the same object. "
+                + "This test confirms that Qilin 1O behaves as expected on this scenario.",
+                AliasTransformer.Result.PTA_SUGGESTS_ALIAS,
                 new Driver().runAnalysis(config.setCallGraph(CallGraphAlgorithm.QILIN_1O)));
     }
 }

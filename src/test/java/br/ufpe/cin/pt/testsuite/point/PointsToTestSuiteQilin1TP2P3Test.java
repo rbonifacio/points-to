@@ -22,9 +22,9 @@ public class PointsToTestSuiteQilin1TP2P3Test {
     @Test
     public void testPointsToQilin1TP2P3() {
         assertEquals(
-                "Conceptually, I expected Qilin 1-type-sensitive PTA to report MAY_ALIAS for point2/point3, because point3 is assigned from point2 (point3 = point2), so they may point to the same object. "
-                + "The current result (PTA_* value) documents Qilin 1T's behaviour in this scenario.",
-                AliasTransformer.Result.PTA_NO_EVIDENCE_OF_ALIAS,
+                "Qilin 1-type-sensitive PTA should report MAY_ALIAS for point2/point3, because point3 is assigned from point2 (point3 = point2), so they may point to the same object. "
+                + "This test confirms that Qilin 1T behaves as expected on this scenario.",
+                AliasTransformer.Result.PTA_SUGGESTS_ALIAS,
                 new Driver().runAnalysis(config.setCallGraph(CallGraphAlgorithm.QILIN_1T)));
     }
 }

@@ -21,9 +21,9 @@ public class PointsToTestSuiteQilinP2P3Test {
     @Test
     public void testPointsToQilinINSENSP2P3() {
         assertEquals(
-                "Conceptually, I expected Qilin context-insensitive PTA to report MAY_ALIAS for point2/point3, because point3 is assigned from point2 (point3 = point2), so they may point to the same object. "
-                + "However, Qilin currently reports NO_ALIAS (PTA_NO_EVIDENCE_OF_ALIAS) for this pair; this is a surprising FALSE negative.",
-                AliasTransformer.Result.PTA_NO_EVIDENCE_OF_ALIAS,
+                "Qilin context-insensitive PTA should report MAY_ALIAS for point2/point3, because point3 is assigned from point2 (point3 = point2), so they may point to the same object. "
+                + "This test confirms that Qilin INSENS behaves as expected on this scenario.",
+                AliasTransformer.Result.PTA_SUGGESTS_ALIAS,
                 new Driver().runAnalysis(config.setCallGraph(CallGraphAlgorithm.QILIN_INSENS)));
     }
 }
