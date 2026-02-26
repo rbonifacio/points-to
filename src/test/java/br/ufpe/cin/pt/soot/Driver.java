@@ -121,7 +121,7 @@ public class Driver {
     /**
      * Configures Soot call-graph / points-to for the given algorithm.
      * For SOOT_* algorithms, enables the corresponding Soot cg phase.
-     * For QILIN_INSENS, disables Soot's PTA (cha and spark off) so Qilin runs as the only PTA.
+     * For QILIN_* algorithms, disables Soot's PTA (cha and spark off) so Qilin runs as the only PTA.
      */
     private static void setCallGraph(CallGraphAlgorithm algorithm) {
         switch (algorithm) {
@@ -147,6 +147,9 @@ public class Driver {
             case QILIN_1C:
             case QILIN_1O:
             case QILIN_1T:
+            case QILIN_2C:
+            case QILIN_2O:
+            case QILIN_2T:
                 // Qilin runs its own PTA; disable Soot's so cg.apply() does not run Spark/CHA
                 Options.v().setPhaseOption("cg.cha", "enabled:false");
                 Options.v().setPhaseOption("cg.spark", "enabled:false");

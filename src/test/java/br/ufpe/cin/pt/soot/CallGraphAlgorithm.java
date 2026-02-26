@@ -8,7 +8,10 @@ public enum CallGraphAlgorithm {
     QILIN_INSENS("qilin::INSENS"),
     QILIN_1C("qilin::1C"),
     QILIN_1O("qilin::1O"),
-    QILIN_1T("qilin::1T");
+    QILIN_1T("qilin::1T"),
+    QILIN_2C("qilin::2C"),
+    QILIN_2O("qilin::2O"),
+    QILIN_2T("qilin::2T");
 
     final String name;
 
