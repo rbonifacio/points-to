@@ -183,13 +183,9 @@ public class Driver {
     }
 
     private static String buildClassPath() {
-        String cp = System.getProperty("java.class.path");
         String testClasses = new File("target/test-classes").getAbsolutePath();
         StringBuilder sb = new StringBuilder();
-        sb.append(testClasses).append(File.pathSeparator).append(testClasses);
-        if (cp != null && !cp.isEmpty()) {
-            sb.append(File.pathSeparator).append(cp);
-        }
+        sb.append(testClasses);//.append(File.pathSeparator).append(testClasses);
         String rt = pathToRT();
         if (rt != null) {
             sb.append(File.pathSeparator).append(rt);
