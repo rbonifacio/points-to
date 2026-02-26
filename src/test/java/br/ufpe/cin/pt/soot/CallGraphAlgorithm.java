@@ -11,7 +11,9 @@ public enum CallGraphAlgorithm {
     QILIN_1T("qilin::1T"),
     QILIN_2C("qilin::2C"),
     QILIN_2O("qilin::2O"),
-    QILIN_2T("qilin::2T");
+    QILIN_2T("qilin::2T"),
+    QILIN_2H("qilin::2H"),
+    QILIN_2HT("qilin::2HT");
 
     final String name;
 
