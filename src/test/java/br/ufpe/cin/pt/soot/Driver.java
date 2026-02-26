@@ -152,6 +152,20 @@ public class Driver {
             case QILIN_2T:
             case QILIN_2H:
             case QILIN_2HT:
+            case QILIN_3C:
+            case QILIN_3O:
+            case QILIN_3T:
+            case QILIN_3H:
+            case QILIN_3HT:
+            case QILIN_B2O:
+            case QILIN_D2O:
+            case QILIN_D2C:
+            case QILIN_E2O:
+            case QILIN_T2O:
+            case QILIN_M2O:
+            case QILIN_M2C:
+            case QILIN_Z2O:
+            case QILIN_Z2C:
                 // Qilin runs its own PTA; disable Soot's so cg.apply() does not run Spark/CHA
                 Options.v().setPhaseOption("cg.cha", "enabled:false");
                 Options.v().setPhaseOption("cg.spark", "enabled:false");
